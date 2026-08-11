@@ -1,4 +1,4 @@
-import app from "../server/app";
+import app from "./app";
 import cors from 'cors'
 import express from 'express'
 import router from "./routes/UserRoutes";
