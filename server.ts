@@ -1,4 +1,5 @@
 import app from "./app";
+import  { Request , Response } from "express";
 import cors from 'cors'
 import express from 'express'
 import router from "./routes/UserRoutes";
@@ -7,7 +8,13 @@ import userRouter from "./routes/UserRoutes";
 import sellerRouter from "./routes/SellerRoutes";
 import adminRouter from './routes/AdminRoute'
 import { encrypt , decrypt } from "./controllers/userController";
-app.use(cors())
+app.use(cors({
+    origin: [
+        "http://localhost:3000",
+        "https://cartify-ecommerce-marketplace.vercel.app"
+    ],
+    credentials: true
+}));
 app.use(express.json())
 app.use("/uploads", express.static("uploads"));
 db.query("SELECT * FROM users", (err, result) => {
@@ -23,7 +30,7 @@ const dec = decrypt(enc)
 console.log("decrypted",dec);
 
 
-app.get('/', (req, res) => {
+app.get('/', (req:Request, res:Response) => {
     res.send("server working")
 })
 app.use("/", userRouter)
