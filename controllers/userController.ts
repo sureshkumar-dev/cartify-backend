@@ -637,5 +637,56 @@ export const fetchOrderDetails = async (req: Request, res: Response): Promise<vo
 
     }
 }
+export const fetchTrendingProducts = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const query = `
+            SELECT p.*, s.storename
+            FROM products p
+            LEFT JOIN sellers s
+                ON p.seller_id = s.id
+            WHERE p.status = 'approved'
+            ORDER BY RAND()
+            LIMIT 8
+        `;
+
+        db.query(query, (err, rows) => {
+            if (err) {
+                console.log(err);
+
+                res.status(500).json({
+                    success: false,
+                    message: "Failed to fetch trending products"
+                });
+                return;
+            }
+
+            const products = rows as any[];
+
+            const productArray = products.map((item) => ({
+                ...item,
+                storename: item.storename
+                    ? decrypt(item.storename)
+                    : item.storename
+            }));
+
+            res.status(200).json({
+                success: true,
+                message: "Trending products fetched",
+                products: productArray
+            });
+        });
+
+    } catch (err) {
+        console.log(err);
+
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong"
+        });
+    }
+};
 
 

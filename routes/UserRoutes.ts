@@ -15,7 +15,8 @@ import {
     checkoutOnline,
     verifyPayment,
     fetchOrders,
-    fetchOrderDetails
+    fetchOrderDetails,
+    fetchTrendingProducts
 } from "../controllers/userController";
 
 const router = Router();
@@ -38,4 +39,5 @@ router.post('/buyer/checkout-razorpay',checkoutOnline)
 router.post('/buyer/verify-payment',verifyPayment)
 router.post('/buyer/fetchOrders',fetchOrders)
 router.post('/buyer/orderdetails/:id',fetchOrderDetails)
+router.post('/buyer/trending',fetchTrendingProducts)
 export default router;
