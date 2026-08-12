@@ -244,25 +244,46 @@ export const delProduct = async (req: Request, res: Response): Promise<void> => 
     })
 
 }
-export const updateStatus = async(req:Request,res:Response):Promise<void>=>{
-    try{
-        const { ordersts } = req.body;
-        const query = `
-    UPDATE orders o
-    JOIN order_items oi
+export const updateStatus = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { ordersts, o_id, p_id } = req.body;
+
+    const query = `
+      UPDATE orders o
+      JOIN order_items oi
         ON o.order_id = oi.order_id
-    SET o.delivery_status = ?
-    WHERE o.order_id = ?
-      AND oi.product_id = ?
-`
-       const { o_id } =req.body
-       const { p_id } =req.body
-       db.query(query,[ordersts,o_id,p_id],(err)=>{
-        console.log(err);
-        
-       })
-    }catch(err){
-        console.log(err);
-        
-    }
-}
+      SET o.delivery_status = ?
+      WHERE o.order_id = ?
+        AND oi.product_id = ?
+    `;
+
+    db.query(query, [ordersts, o_id, p_id], (err, result) => {
+      if (err) {
+        console.log("Update status DB error:", err);
+        res.status(500).json({
+          success: false,
+          message: "Failed to update order status",
+          error: err,
+        });
+        return;
+      }
+
+      console.log("Update result:", result);
+
+      res.status(200).json({
+        success: true,
+        message: "Order status updated successfully",
+      });
+    });
+  } catch (err) {
+    console.log("Update status error:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
