@@ -10,6 +10,7 @@ import {
     delProduct,
     updateStatus
 } from "../controllers/sellerController";
+import { fetchOrders } from "../controllers/userController";
 import{forgetPasswordSeller,
     verifyotp,
     sellerUpdatePwd} from '../controllers/userController'
@@ -26,6 +27,7 @@ router.post("/seller/forget-password", forgetPasswordSeller);
 router.post("/seller/forget-password/verify-otp", verifyotp);
 router.post("/seller/update-password", sellerUpdatePwd);
 router.post('/seller/change-status',updateStatus)
+router.post('/buyer/fetchOrders',fetchOrders)
 router.post("/seller/add-product",upload.single('ProductImage'),AddProduct);
 
 export default router;
