@@ -175,12 +175,35 @@ export const AddProduct = async (req: Request, res: Response) => {
 
         })
         const seller = user.id;
-        db.query(showproducts, [seller], (err, rows) => {
-            const productArray = rows as any[]
-            res.status(200).json({
-                products: productArray
-            })
-        })
+        db.query(
+    addproduct,
+    [
+        ProductName,
+        ProductDesc,
+        ProductPrice,
+        ProductCategory,
+        ProductImage,
+        1,
+        seller_id
+    ],
+    (err, result) => {
+
+        if (err) {
+            console.log("Add product DB error:", err);
+
+            res.status(500).json({
+                success: false,
+                message: "Failed to add product"
+            });
+            return;
+        }
+
+        res.status(201).json({
+            success: true,
+            message: "Product added successfully"
+        });
+    }
+);
     } catch (err) {
         console.log(err);
 
@@ -225,25 +248,64 @@ export const FetchProducts = async (req: Request, res: Response) => {
         });
     }
 };
-export const delProduct = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params
-    console.log(req.originalUrl);
-    console.log(req.params);
-    console.log("params:", req.params);
-    console.log("id:", req.params.id);
-    db.query(deleteProduct, [id], (err) => {
-        if (err) {
-            return console.log(err);
+export const delProduct = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id } = req.params;
 
+        const token = req.headers.authorization?.split(" ")[1];
+
+        if (!token) {
+            res.status(401).json({
+                success: false,
+                message: "Token not found"
+            });
+            return;
         }
-        res.json({
-            message: "product deleted"
-        })
 
+        const user = jwt.verify(
+            token,
+            process.env.JWT_SECRET!
+        ) as TokenPayload;
 
-    })
+        const query = `
+            DELETE FROM products
+            WHERE product_id = ?
+            AND seller_id = ?
+        `;
 
-}
+        db.query(
+            query,
+            [id, user.id],
+            (err, result) => {
+                if (err) {
+                    console.log("Delete product DB error:", err);
+
+                    res.status(500).json({
+                        success: false,
+                        message: "Database error"
+                    });
+                    return;
+                }
+
+                res.status(200).json({
+                    success: true,
+                    message: "Product deleted"
+                });
+            }
+        );
+
+    } catch (err) {
+        console.log("Delete product error:", err);
+
+        res.status(401).json({
+            success: false,
+            message: "Invalid token"
+        });
+    }
+};
 export const updateStatus = async (
   req: Request,
   res: Response
@@ -286,4 +348,71 @@ export const updateStatus = async (
       message: "Server error",
     });
   }
+};
+export const FetchSellerOrders = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+
+        if (!token) {
+            res.status(401).json({
+                success: false,
+                message: "Token not found"
+            });
+            return;
+        }
+
+        const user = jwt.verify(
+            token,
+            process.env.JWT_SECRET!
+        ) as TokenPayload;
+
+        const query = `
+            SELECT
+                oi.id,
+                o.user_id,
+                oi.product_id,
+                oi.product_name,
+                oi.product_img,
+                oi.price,
+                oi.quantity,
+                o.order_id AS OrderID,
+                o.order_date,
+                o.delivery_status
+            FROM orders o
+            JOIN order_items oi
+                ON o.order_id = oi.order_id
+            JOIN products p
+                ON oi.product_id = p.product_id
+            WHERE p.seller_id = ?
+            ORDER BY o.order_date DESC
+        `;
+
+        db.query(query, [user.id], (err, rows) => {
+            if (err) {
+                console.log("Fetch seller orders DB error:", err);
+
+                res.status(500).json({
+                    success: false,
+                    message: "Database error"
+                });
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                orders: rows
+            });
+        });
+
+    } catch (err) {
+        console.log("Fetch seller orders error:", err);
+
+        res.status(401).json({
+            success: false,
+            message: "Invalid token"
+        });
+    }
 };
