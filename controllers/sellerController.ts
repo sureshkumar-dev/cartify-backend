@@ -487,7 +487,6 @@ export const FetchSellerOrders = async (
                 oi.quantity,
 
                 o.order_id AS OrderID,
-                o.order_date,
                 o.delivery_status
 
             FROM orders o
@@ -500,7 +499,7 @@ export const FetchSellerOrders = async (
 
             WHERE p.seller_id = ?
 
-            ORDER BY o.order_date DESC
+            ORDER BY o.order_id DESC
         `;
 
         db.query(query, [user.id], (err, rows) => {
@@ -512,7 +511,6 @@ export const FetchSellerOrders = async (
                     message: "Database error",
                     error: err
                 });
-
                 return;
             }
 
@@ -525,7 +523,7 @@ export const FetchSellerOrders = async (
         });
 
     } catch (err) {
-        console.log("🔥 FETCH ORDERS ERROR:", err);
+        console.log(" FETCH ORDERS ERROR:", err);
 
         res.status(401).json({
             success: false,
