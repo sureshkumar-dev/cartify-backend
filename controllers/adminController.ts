@@ -84,3 +84,21 @@ export const manageProducts = async(req:Request,res:Response) => {
     })
 
 }
+export const  fetchOrdersAdmin = async(req:Request,res:Response) => {
+    try{
+        const query = 'SELECT * FROM oredrs'
+        db.query(query,(err,rows)=>{
+            if(err){
+              return console.log(err);
+            }
+            let orders = rows as any[]
+            res.status(200).json({
+                orders:orders
+            })
+
+        })
+    }catch(err){
+        console.log(err);
+        
+    }
+}
