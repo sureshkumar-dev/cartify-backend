@@ -475,34 +475,34 @@ export const FetchSellerOrders = async (
         ) as TokenPayload;
 
         const query = `
-            SELECT
-                oi.id,
-                o.user_id,
-                oi.product_id,
+    SELECT
+        oi.id,
+        o.user_id,
+        oi.product_id,
 
-                p.product_name,
-                p.product_img,
+        p.product_name,
+        p.product_img,
 
-                oi.price,
-                oi.quantity,
+        oi.price,
+        oi.quantity,
 
-                o.order_id AS OrderID,
-                o.created_at AS order_date,
+        o.order_id AS OrderID,
+        o.created_at AS order_date,
 
-                oi.delivery_status
+        oi.delivery_status
 
-            FROM orders o
+    FROM orders o
 
-            JOIN order_items oi
-                ON o.order_id = oi.order_id
+    JOIN order_items oi
+        ON o.id = oi.order_id
 
-            JOIN products p
-                ON oi.product_id = p.product_id
+    JOIN products p
+        ON oi.product_id = p.product_id
 
-            WHERE p.seller_id = ?
+    WHERE p.seller_id = ?
 
-            ORDER BY o.created_at DESC
-        `;
+    ORDER BY o.created_at DESC
+`;
 
         db.query(query, [user.id], (err, rows) => {
             if (err) {
