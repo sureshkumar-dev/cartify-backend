@@ -547,8 +547,11 @@ export const FetchSellerOrders = async (
 };
 export const fetchPendingorders = async(req:Request,res:Response):Promise<void> =>{
     try{
-        const query = ' select * from order_items where delivery_status = (?)'
-        db.query(query,['pending'],(err,rows)=>{
+        const  token   = req.headers.authorization
+        const decoded= jwt.verify(token!,process.env.JWT_SECRET!) as TokenPayload
+        const userid = decoded.id
+        const query = 'select o.*,p.seller_id from order_items o join products p on o.product_id = p.product_id where delivery_status = (?) AND seller_id = (?)'
+        db.query(query,['pending',userid],(err,rows)=>{
             if(err){
                 return console.log(err);
             }
