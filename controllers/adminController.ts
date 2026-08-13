@@ -86,7 +86,7 @@ export const manageProducts = async(req:Request,res:Response) => {
 }
 export const  fetchOrdersAdmin = async(req:Request,res:Response) => {
     try{
-        const query = 'SELECT * FROM oredrs'
+        const query = 'SELECT * FROM orders'
         db.query(query,(err,rows)=>{
             if(err){
               return console.log(err);
