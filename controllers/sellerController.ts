@@ -384,7 +384,7 @@ export const updateStatus = async (
         if (!ordersts || !o_id || !p_id) {
             res.status(400).json({
                 success: false,
-                message: "Missing order details"
+                message: "Missing order details",
             });
             return;
         }
@@ -394,7 +394,7 @@ export const updateStatus = async (
         if (!token) {
             res.status(401).json({
                 success: false,
-                message: "Token not found"
+                message: "Token not found",
             });
             return;
         }
@@ -405,12 +405,16 @@ export const updateStatus = async (
         ) as TokenPayload;
 
         const query = `
-            UPDATE orders o
-            JOIN order_items oi
-                ON o.order_id = oi.order_id
+            UPDATE order_items oi
+
+            JOIN orders o
+                ON o.id = oi.order_id
+
             JOIN products p
-                ON oi.product_id = p.product_id
-            SET o.delivery_status = ?
+                ON p.product_id = oi.product_id
+
+            SET oi.delivery_status = ?
+
             WHERE o.order_id = ?
               AND oi.product_id = ?
               AND p.seller_id = ?
@@ -421,36 +425,44 @@ export const updateStatus = async (
             [ordersts, o_id, p_id, user.id],
             (err, result: any) => {
                 if (err) {
-                    console.log("Update status DB error:", err);
+                    console.log(
+                        "🔥 UPDATE STATUS DB ERROR:",
+                        err
+                    );
 
                     res.status(500).json({
                         success: false,
-                        message: "Failed to update order status"
+                        message: "Failed to update order status",
+                        error: err
                     });
                     return;
                 }
 
+                console.log("🔥 UPDATE STATUS RESULT:", result);
+
                 if (result.affectedRows === 0) {
                     res.status(404).json({
                         success: false,
-                        message: "Order not found or unauthorized"
+                        message:
+                            "Order item not found or unauthorized",
                     });
                     return;
                 }
 
                 res.status(200).json({
                     success: true,
-                    message: "Order status updated successfully"
+                    message:
+                        "Order status updated successfully",
                 });
             }
         );
 
     } catch (err) {
-        console.log("Update status error:", err);
+        console.log("🔥 UPDATE STATUS ERROR:", err);
 
         res.status(401).json({
             success: false,
-            message: "Invalid token"
+            message: "Invalid token",
         });
     }
 };
