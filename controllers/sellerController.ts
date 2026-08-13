@@ -545,3 +545,20 @@ export const FetchSellerOrders = async (
         });
     }
 };
+export const fetchPendingorders = async(req:Request,res:Response):Promise<void> =>{
+    try{
+        const query = ' select * from order_items where delivery_status = (?)'
+        db.query(query,['pending'],(err,rows)=>{
+            if(err){
+                return console.log(err);
+            }
+            const products = rows as any[]
+            res.status(200).json({
+                success:true,
+                products:products
+            })
+        })
+    }catch(err){
+
+    }
+}

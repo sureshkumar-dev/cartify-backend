@@ -9,7 +9,8 @@ import {
     FetchProducts,
     delProduct,
     updateStatus,
-    FetchSellerOrders
+    FetchSellerOrders,
+    fetchPendingorders
 } from "../controllers/sellerController";
 
 import{forgetPasswordSeller,
@@ -29,6 +30,7 @@ router.post("/seller/forget-password/verify-otp", verifyotp);
 router.post("/seller/update-password", sellerUpdatePwd);
 router.post('/seller/change-status',updateStatus)
 router.get("/seller/fetch-orders", FetchSellerOrders);
+router.get('/seller/pendingOrders',fetchPendingorders)
 router.post("/seller/add-product",upload.single('ProductImage'),AddProduct);
 
 export default router;
