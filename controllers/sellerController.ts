@@ -88,24 +88,65 @@ export const fetchSeller = async (req: Request, res: Response): Promise<void> =>
         });
     }
 };
-export const sellerSignup = async (req: Request, res: Response) => {
+export const sellerSignup = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
-        const { storename, email, number, password } = req.body;
+        const {
+            storename,
+            email,
+            number,
+            password
+        } = req.body;
+
+        if (!storename || !email || !number || !password) {
+            res.status(400).json({
+                success: false,
+                message: "All fields are required"
+            });
+            return;
+        }
+
         const encStorename = encrypt(storename);
-        const encEmail = encrypt(email);
         const encNumber = encrypt(number);
         const encPassword = encrypt(password);
-        db.query(insertseller, [encStorename, email, encNumber, encPassword])
-        res.status(201).json({
-            success: true,
-            message: "seller created"
-        })
+
+        db.query(
+            insertseller,
+            [
+                encStorename,
+                email,
+                encNumber,
+                encPassword
+            ],
+            (err) => {
+                if (err) {
+                    console.log("Seller signup DB error:", err);
+
+                    res.status(500).json({
+                        success: false,
+                        message: "Seller creation failed"
+                    });
+                    return;
+                }
+
+                res.status(201).json({
+                    success: true,
+                    message: "Seller created successfully"
+                });
+            }
+        );
 
     } catch (err) {
-        console.log(err);
+        console.log("Seller signup error:", err);
 
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
     }
-}
+};
 export const sellerLogin = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
@@ -150,69 +191,96 @@ interface TokenPayload {
     id: number;
     role: string;
 }
-export const AddProduct = async (req: Request, res: Response) => {
+export const AddProduct = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
-        const ProductName = req.body.ProductName;
-        const ProductDesc = req.body.ProductDesc;
-        const ProductPrice = req.body.ProductPrice;
-        const ProductCategory = req.body.ProductCategory;
+        const {
+            ProductName,
+            ProductDesc,
+            ProductPrice,
+            ProductCategory
+        } = req.body;
+
         const ProductImage = req.file?.filename;
-        const token = req.headers.authorization?.split(' ')[1];
+
+        const token = req.headers.authorization?.split(" ")[1];
+
         if (!token) {
-            return res.status(404).json({
-                message: "token not found"
-            })
-        }
-        const user = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload
-        console.log("token", user);
-        if (!user) {
-            return res.json({
-                message: "user not found"
-            })
-        }
-        const seller_id = user.id
-        db.query(addproduct, [ProductName, ProductDesc, ProductPrice, ProductCategory, ProductImage, 1, seller_id], (err) => {
-
-        })
-        const seller = user.id;
-        db.query(
-    addproduct,
-    [
-        ProductName,
-        ProductDesc,
-        ProductPrice,
-        ProductCategory,
-        ProductImage,
-        1,
-        seller_id
-    ],
-    (err, result) => {
-
-        if (err) {
-            console.log("Add product DB error:", err);
-
-            res.status(500).json({
+            res.status(401).json({
                 success: false,
-                message: "Failed to add product"
+                message: "Token not found"
             });
             return;
         }
 
-        res.status(201).json({
-            success: true,
-            message: "Product added successfully"
+        const user = jwt.verify(
+            token,
+            process.env.JWT_SECRET!
+        ) as TokenPayload;
+
+        if (!user?.id) {
+            res.status(401).json({
+                success: false,
+                message: "Invalid user"
+            });
+            return;
+        }
+
+        if (
+            !ProductName ||
+            !ProductDesc ||
+            !ProductPrice ||
+            !ProductCategory
+        ) {
+            res.status(400).json({
+                success: false,
+                message: "All product fields are required"
+            });
+            return;
+        }
+
+        const seller_id = user.id;
+
+        db.query(
+            addproduct,
+            [
+                ProductName,
+                ProductDesc,
+                ProductPrice,
+                ProductCategory,
+                ProductImage,
+                1,
+                seller_id
+            ],
+            (err) => {
+                if (err) {
+                    console.log("Add product DB error:", err);
+
+                    res.status(500).json({
+                        success: false,
+                        message: "Failed to add product"
+                    });
+                    return;
+                }
+
+                res.status(201).json({
+                    success: true,
+                    message: "Product added successfully"
+                });
+            }
+        );
+
+    } catch (err) {
+        console.log("Add product error:", err);
+
+        res.status(401).json({
+            success: false,
+            message: "Invalid token"
         });
     }
-);
-    } catch (err) {
-        console.log(err);
-
-    }
-
-
-
-
-}
+};
 export const FetchProducts = async (req: Request, res: Response) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
@@ -307,47 +375,84 @@ export const delProduct = async (
     }
 };
 export const updateStatus = async (
-  req: Request,
-  res: Response
+    req: Request,
+    res: Response
 ): Promise<void> => {
-  try {
-    const { ordersts, o_id, p_id } = req.body;
+    try {
+        const { ordersts, o_id, p_id } = req.body;
 
-    const query = `
-      UPDATE orders o
-      JOIN order_items oi
-        ON o.order_id = oi.order_id
-      SET o.delivery_status = ?
-      WHERE o.order_id = ?
-        AND oi.product_id = ?
-    `;
+        if (!ordersts || !o_id || !p_id) {
+            res.status(400).json({
+                success: false,
+                message: "Missing order details"
+            });
+            return;
+        }
 
-    db.query(query, [ordersts, o_id, p_id], (err, result) => {
-      if (err) {
-        console.log("Update status DB error:", err);
-        res.status(500).json({
-          success: false,
-          message: "Failed to update order status",
-          error: err,
+        const token = req.headers.authorization?.split(" ")[1];
+
+        if (!token) {
+            res.status(401).json({
+                success: false,
+                message: "Token not found"
+            });
+            return;
+        }
+
+        const user = jwt.verify(
+            token,
+            process.env.JWT_SECRET!
+        ) as TokenPayload;
+
+        const query = `
+            UPDATE orders o
+            JOIN order_items oi
+                ON o.order_id = oi.order_id
+            JOIN products p
+                ON oi.product_id = p.product_id
+            SET o.delivery_status = ?
+            WHERE o.order_id = ?
+              AND oi.product_id = ?
+              AND p.seller_id = ?
+        `;
+
+        db.query(
+            query,
+            [ordersts, o_id, p_id, user.id],
+            (err, result: any) => {
+                if (err) {
+                    console.log("Update status DB error:", err);
+
+                    res.status(500).json({
+                        success: false,
+                        message: "Failed to update order status"
+                    });
+                    return;
+                }
+
+                if (result.affectedRows === 0) {
+                    res.status(404).json({
+                        success: false,
+                        message: "Order not found or unauthorized"
+                    });
+                    return;
+                }
+
+                res.status(200).json({
+                    success: true,
+                    message: "Order status updated successfully"
+                });
+            }
+        );
+
+    } catch (err) {
+        console.log("Update status error:", err);
+
+        res.status(401).json({
+            success: false,
+            message: "Invalid token"
         });
-        return;
-      }
-
-      console.log("Update result:", result);
-
-      res.status(200).json({
-        success: true,
-        message: "Order status updated successfully",
-      });
-    });
-  } catch (err) {
-    console.log("Update status error:", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
+    }
 };
 export const FetchSellerOrders = async (
     req: Request,
