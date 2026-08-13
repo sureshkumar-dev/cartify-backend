@@ -464,7 +464,7 @@ export const FetchSellerOrders = async (
         if (!token) {
             res.status(401).json({
                 success: false,
-                message: "Token not found"
+                message: "Token not found",
             });
             return;
         }
@@ -475,14 +475,33 @@ export const FetchSellerOrders = async (
         ) as TokenPayload;
 
         const query = `
-    SELECT *
-    FROM orders o
-    JOIN order_items oi
-        ON o.order_id = oi.order_id
-    JOIN products p
-        ON oi.product_id = p.product_id
-    WHERE p.seller_id = ?
-`;
+            SELECT
+                oi.id,
+                o.user_id,
+                oi.product_id,
+
+                p.product_name,
+                p.product_img,
+
+                oi.price,
+                oi.quantity,
+
+                o.order_id AS OrderID,
+                o.order_date,
+                o.delivery_status
+
+            FROM orders o
+
+            JOIN order_items oi
+                ON o.order_id = oi.order_id
+
+            JOIN products p
+                ON oi.product_id = p.product_id
+
+            WHERE p.seller_id = ?
+
+            ORDER BY o.order_date DESC
+        `;
 
         db.query(query, [user.id], (err, rows) => {
             if (err) {
@@ -493,6 +512,7 @@ export const FetchSellerOrders = async (
                     message: "Database error",
                     error: err
                 });
+
                 return;
             }
 
@@ -505,7 +525,7 @@ export const FetchSellerOrders = async (
         });
 
     } catch (err) {
-        console.log("Fetch seller orders error:", err);
+        console.log("🔥 FETCH ORDERS ERROR:", err);
 
         res.status(401).json({
             success: false,
