@@ -475,36 +475,28 @@ export const FetchSellerOrders = async (
         ) as TokenPayload;
 
         const query = `
-            SELECT
-                oi.id,
-                o.user_id,
-                oi.product_id,
-                oi.product_name,
-                oi.product_img,
-                oi.price,
-                oi.quantity,
-                o.order_id AS OrderID,
-                o.order_date,
-                o.delivery_status
-            FROM orders o
-            JOIN order_items oi
-                ON o.order_id = oi.order_id
-            JOIN products p
-                ON oi.product_id = p.product_id
-            WHERE p.seller_id = ?
-            ORDER BY o.order_date DESC
-        `;
+    SELECT *
+    FROM orders o
+    JOIN order_items oi
+        ON o.order_id = oi.order_id
+    JOIN products p
+        ON oi.product_id = p.product_id
+    WHERE p.seller_id = ?
+`;
 
         db.query(query, [user.id], (err, rows) => {
             if (err) {
-                console.log("Fetch seller orders DB error:", err);
+                console.log("🔥 FETCH ORDERS DB ERROR:", err);
 
                 res.status(500).json({
                     success: false,
-                    message: "Database error"
+                    message: "Database error",
+                    error: err
                 });
                 return;
             }
+
+            console.log("🔥 SELLER ORDERS:", rows);
 
             res.status(200).json({
                 success: true,
