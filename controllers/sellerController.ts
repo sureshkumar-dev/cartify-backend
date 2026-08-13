@@ -487,7 +487,9 @@ export const FetchSellerOrders = async (
                 oi.quantity,
 
                 o.order_id AS OrderID,
-                o.delivery_status
+                o.created_at AS order_date,
+
+                oi.delivery_status
 
             FROM orders o
 
@@ -499,7 +501,7 @@ export const FetchSellerOrders = async (
 
             WHERE p.seller_id = ?
 
-            ORDER BY o.order_id DESC
+            ORDER BY o.created_at DESC
         `;
 
         db.query(query, [user.id], (err, rows) => {
@@ -523,7 +525,7 @@ export const FetchSellerOrders = async (
         });
 
     } catch (err) {
-        console.log(" FETCH ORDERS ERROR:", err);
+        console.log("🔥 FETCH ORDERS ERROR:", err);
 
         res.status(401).json({
             success: false,
